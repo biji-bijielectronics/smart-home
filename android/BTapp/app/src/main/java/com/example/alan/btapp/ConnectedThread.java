@@ -14,6 +14,7 @@ import static com.example.alan.btapp.StartActivity.mHandler;
  */
 
 public class ConnectedThread extends Thread {
+    static public String receivedData;
     private final BluetoothSocket mmSocket;
     private final InputStream mmInStream;
     private final OutputStream mmOutStream;
@@ -74,4 +75,44 @@ public class ConnectedThread extends Thread {
         } catch (IOException e) {
         }
     }
+
+//    boolean stopThread;
+//    InputStream inputStream;
+//
+//    void beginListenForData() throws IOException {
+//        inputStream = mmSocket.getInputStream();
+//        stopThread = false;
+//        Thread thread  = new Thread(new Runnable()
+//        {
+//            public void run()
+//            {
+//                while(!Thread.currentThread().isInterrupted() && !stopThread)
+//                {
+//                    try
+//                    {
+//                        int byteCount = inputStream.available();
+//                        if(byteCount > 0)
+//                        {
+//                            byte[] rawBytes = new byte[byteCount];
+//                            inputStream.read(rawBytes);
+//                            final String str=new String(rawBytes,"UTF-8");
+//                            mHandler.post(new Runnable() {
+//                                public void run()
+//                                {
+//                                    receivedData = str;
+//                                }
+//                            });
+//
+//                        }
+//                    }
+//                    catch (IOException ex)
+//                    {
+//                        stopThread = true;
+//                    }
+//                }
+//            }
+//        });
+//
+//        thread.start();
+//    }
 }

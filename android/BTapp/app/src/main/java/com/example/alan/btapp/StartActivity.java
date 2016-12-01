@@ -45,6 +45,11 @@ public class StartActivity extends AppCompatActivity {
     private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     private BluetoothAdapter BA;
+    private StringBuilder recDataString = new StringBuilder();
+
+    public static int voltage, current;
+    String[] graphData;
+    String clearLog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,19 +59,47 @@ public class StartActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+
+        mHandler = new Handler() {
+            public void handleMessage(android.os.Message msg) {
+                if (msg.what == 0) {
+                    String readMessage = (String) msg.obj;
+                    recDataString.append(readMessage);               //keep appending to string until ~
+                    int endOfLineIndex = recDataString.indexOf("~"); // determine the end-of-line
+                    if (endOfLineIndex > 0) {                        // make sure there data before ~
+                        String dataInPrint = recDataString.substring(0, endOfLineIndex);    // extract string
+                        //txtString.setText("Data Received = " + dataInPrint);
+                        int dataLength = dataInPrint.length();                              //get length of data received
+                        //txtStringLength.setText("String Length = " + String.valueOf(dataLength));
+
+                        if (recDataString.charAt(0) == '#' && recDataString.charAt(1) == 'R') //if it starts with # we know it is what we are looking for
+                        {
+                            recDataString.deleteCharAt(0);
+                            recDataString.deleteCharAt(1);
+                            recDataString.deleteCharAt(recDataString.length()-1);
+                            String[] nums = recDataString.toString().split("/+");
+                            voltage = Integer.parseInt(nums[0]);
+                            current = Integer.parseInt(nums[1]);
+                        } else if (recDataString.charAt(0) == '#' && recDataString.charAt(1) == 'D') {
+                            recDataString.deleteCharAt(0);
+                            recDataString.deleteCharAt(1);
+                            recDataString.deleteCharAt(recDataString.length()-1);
+                            graphData = recDataString.toString().split("|");
+                        } else if (recDataString.charAt(0) == '#' && recDataString.charAt(1) == 'C') {
+                            Toast.makeText(getApplicationContext(), "Log files are cleared", Toast.LENGTH_SHORT).show();
+                        }
+                        recDataString.delete(0, recDataString.length());            //clear all string data
+                        dataInPrint = " ";
+                    }
+                }
             }
-        });
+        };
 
         BA = BluetoothAdapter.getDefaultAdapter();
 
-        mHandler = new Handler(){
-            public void handleMessage(android.os.Message msg){
-                if(msg.what == MESSAGE_READ){
+        mHandler = new Handler() {
+            public void handleMessage(android.os.Message msg) {
+                if (msg.what == MESSAGE_READ) {
                     String readMessage = null;
                     try {
                         readMessage = new String((byte[]) msg.obj, "UTF-8");
@@ -75,18 +108,16 @@ public class StartActivity extends AppCompatActivity {
                     }
                 }
 
-                if(msg.what == CONNECTING_STATUS){
-                    if(msg.arg1 == 1) {
+                if (msg.what == CONNECTING_STATUS) {
+                    if (msg.arg1 == 1) {
                         Toast.makeText(getApplicationContext(), "Connected to Device: " + (String) (msg.obj), Toast.LENGTH_SHORT).show();
                         Intent mainMenu = new Intent(StartActivity.this, MainActivity.class);
                         startActivity(mainMenu);
-                    }
-                    else
-                        Toast.makeText(getApplicationContext(),"Connection failed",Toast.LENGTH_SHORT).show();
+                    } else
+                        Toast.makeText(getApplicationContext(), "Connection failed", Toast.LENGTH_SHORT).show();
                 }
             }
         };
-
 
 
         if (BA == null) {
@@ -113,35 +144,51 @@ public class StartActivity extends AppCompatActivity {
         startActivityForResult(getVisible, 0);
 
 
-
         // ListView paired devices
         ListView lv = (ListView) findViewById(R.id.lv_paired);
         Set<BluetoothDevice> pairedDevices = BA.getBondedDevices();
         ArrayList list = new ArrayList();
-        for(BluetoothDevice btz : pairedDevices) list.add(btz.getName() + "\n" + btz.getAddress());
-        Toast.makeText(getApplicationContext(), "Showing Paired Devices",Toast.LENGTH_SHORT).show();
+        for (BluetoothDevice btz : pairedDevices) list.add(btz.getName() + "\n" + btz.getAddress());
+        Toast.makeText(getApplicationContext(), "Showing Paired Devices", Toast.LENGTH_SHORT).show();
         ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, list);
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(mDeviceClickListener);
+
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ListView lv = (ListView) findViewById(R.id.lv_paired);
+                ArrayList list = new ArrayList();
+                Set<BluetoothDevice> pairedDevices = BA.getBondedDevices();
+                for (BluetoothDevice btz : pairedDevices)
+                    list.add(btz.getName() + "\n" + btz.getAddress());
+                Toast.makeText(getApplicationContext(), "Showing Paired Devices", Toast.LENGTH_SHORT).show();
+                ArrayAdapter adapter = new ArrayAdapter(StartActivity.this, android.R.layout.simple_list_item_1, list);
+                lv.setAdapter(adapter);
+                lv.setOnItemClickListener(mDeviceClickListener);
+            }
+        });
+
+//        Intent intent = new Intent(StartActivity.this, MainActivity.class);
+//        startActivity(intent);
     }
 
     private AdapterView.OnItemClickListener mDeviceClickListener = new AdapterView.OnItemClickListener() {
         public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3) {
 
-            if(!BA.isEnabled()) {
+            if (!BA.isEnabled()) {
                 Toast.makeText(getBaseContext(), "Bluetooth not on", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            Toast.makeText(getApplicationContext(),"Connecting...",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Connecting...", Toast.LENGTH_SHORT).show();
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
             final String address = info.substring(info.length() - 17);
-            final String name = info.substring(0,info.length() - 17);
+            final String name = info.substring(0, info.length() - 17);
 
             // Spawn a new thread to avoid blocking the GUI one
-            new Thread()
-            {
+            new Thread() {
                 public void run() {
                     boolean fail = false;
 
@@ -167,7 +214,7 @@ public class StartActivity extends AppCompatActivity {
                             Toast.makeText(getBaseContext(), "Socket creation failed", Toast.LENGTH_SHORT).show();
                         }
                     }
-                    if(fail == false) {
+                    if (fail == false) {
                         mConnectedThread = new ConnectedThread(mBTSocket);
                         mConnectedThread.start();
 
@@ -202,7 +249,7 @@ public class StartActivity extends AppCompatActivity {
     }
 
     private BluetoothSocket createBluetoothSocket(BluetoothDevice device) throws IOException {
-        return  device.createRfcommSocketToServiceRecord(BTMODULEUUID);
+        return device.createRfcommSocketToServiceRecord(BTMODULEUUID);
         //creates secure outgoing connection with BT device using UUID
     }
 }

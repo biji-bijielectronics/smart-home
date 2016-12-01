@@ -1,6 +1,7 @@
 package com.example.alan.btapp;
 
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -10,6 +11,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
 
+import com.github.anastr.speedviewlib.AwesomeSpeedometer;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.alan.btapp.StartActivity.mConnectedThread;
+import static com.example.alan.btapp.StartActivity.voltage;
 
 
 /**
@@ -28,7 +31,7 @@ import static com.example.alan.btapp.StartActivity.mConnectedThread;
  */
 public class MainFragment extends Fragment {
 
-    private LineChart lineChart;
+    private AwesomeSpeedometer awesomeSpeedometer;
 
     public MainFragment() {
         // Required empty public constructor
@@ -45,26 +48,29 @@ public class MainFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         // Setup any handles to view objects here
-        //mainLayout = (RelativeLayout) view.findViewById(R.id.);
+        awesomeSpeedometer = (AwesomeSpeedometer) view.findViewById(R.id.speedView);
 
-        lineChart = (LineChart) view.findViewById(R.id.chart);
+        while (true) {
+            try {
 
-        List<Entry> entries = new ArrayList<Entry>();
-        entries.add(new Entry(2, 10));
-        entries.add(new Entry(3, 23));
-        entries.add(new Entry(4, 54));
-        entries.add(new Entry(5, 32));
-        entries.add(new Entry(6, 13));
-        entries.add(new Entry(7, 1));
-
-        LineDataSet dataSet = new LineDataSet(entries, "Energy"); // add entries to dataset
-        dataSet.setAxisDependency(YAxis.AxisDependency.LEFT);
-
-        List<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
-        dataSets.add(dataSet);
-
-        LineData data = new LineData(dataSets);
-        lineChart.setData(data);
-        lineChart.invalidate();
+                mConnectedThread.write("#R~");
+                mConnectedThread.sleep(1000);
+                awesomeSpeedometer.speedTo(voltage); //voltage * current
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+//        awesomeSpeedometer.invalidate();
+//        awesomeSpeedometer.speedTo(20);
+//        if (awesomeSpeedometer.getSpeed() < 25) {
+//            awesomeSpeedometer.setSpeedometerColor(Color.BLUE);
+//            awesomeSpeedometer.speedTo(50);
+//        } else if (awesomeSpeedometer.getSpeed() > 25 && awesomeSpeedometer.getSpeed() < 60) {
+//            awesomeSpeedometer.setSpeedometerColor(Color.GREEN);
+//            awesomeSpeedometer.speedTo(80);
+//        } else if (awesomeSpeedometer.getSpeed() > 60 && awesomeSpeedometer.getSpeed() < 100) {
+//            awesomeSpeedometer.setSpeedometerColor(Color.RED);
+//            awesomeSpeedometer.speedTo(0);
+//        }
     }
 }
