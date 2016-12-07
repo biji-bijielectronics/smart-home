@@ -83,7 +83,7 @@ void setup()
     solarReadings[i] = 0;
   }
 
-  for(int i =0; i < num_leds; i++){
+  for (int i = 0; i < num_leds; i++) {
     pinMode(leds[i], OUTPUT);
   }
 
@@ -183,9 +183,9 @@ void clearLog() {
 void updateLED(int ledNum, int brightness) {
   if (ledNum > 0 && ledNum <= num_leds) {
 
-    analogWrite(leds[ledNum -1], brightness);
-     
-    //Echo back 
+    analogWrite(leds[ledNum - 1], brightness);
+
+    //Echo back
     Serial.print("#L");
     Serial.print(ledNum);
     Serial.print("+");
@@ -193,11 +193,11 @@ void updateLED(int ledNum, int brightness) {
     Serial.println("~");
 
 
-  }else{
+  } else {
     Serial.print("#L");
     Serial.print(ledNum);
     Serial.println("+ERROR~");
-    
+
   }
 
 }
@@ -240,6 +240,18 @@ void checkSerial() {
       Serial.println("~");
 
       break;
+
+    case 'S':
+      Serial.print("#S");
+      Serial.print(solarValue);
+      Serial.print("+");
+      Serial.print(battValue);
+      Serial.print("+");
+      Serial.print(currentValue);
+      Serial.println("~");
+
+      break;
+
     case 'D':
       readFromSD();
       break;
