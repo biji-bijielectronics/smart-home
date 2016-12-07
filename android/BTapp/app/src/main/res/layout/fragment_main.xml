@@ -6,31 +6,21 @@
     tools:context="com.example.alan.btapp.MainFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <RelativeLayout
+    <android.support.percent.PercentRelativeLayout
+        android:background="@color/colorAccent"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/main"
-            android:textSize="30dp"
-            android:textStyle="bold"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:id="@+id/textView4" />
-
-        <com.github.anastr.speedviewlib.AwesomeSpeedometer
-            android:id="@+id/speedView"
-            android:layout_width="250dp"
-            android:layout_height="wrap_content"
-            app:speedometerColor="#ef3737"
-            app:indicatorColor="#ffffff"
-            app:trianglesColor="#000"
+        <com.github.yongjhih.mismeter.MisMeter
+            android:id="@+id/meter"
+            app:layout_heightPercent="70%"
+            app:layout_widthPercent="100%"
+            app:show_text="true"
             android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true" />
+            android:layout_centerHorizontal="true"
+            />
 
-    </RelativeLayout>
+    </android.support.percent.PercentRelativeLayout>
 
 
 

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import static com.example.alan.btapp.StartActivity.mConnectedThread;
 import static com.example.alan.btapp.StartActivity.mHandler;
 
 /**
@@ -14,7 +15,6 @@ import static com.example.alan.btapp.StartActivity.mHandler;
  */
 
 public class ConnectedThread extends Thread {
-    static public String receivedData;
     private final BluetoothSocket mmSocket;
     private final InputStream mmInStream;
     private final OutputStream mmOutStream;
@@ -37,22 +37,17 @@ public class ConnectedThread extends Thread {
     }
 
     public void run() {
-        byte[] buffer = new byte[1024];  // buffer store for the stream
-        int bytes; // bytes returned from read()
+        byte[] buffer = new byte[256];
+        int bytes;
 
-        // Keep listening to the InputStream until an exception occurs
+        // Keep looping to listen for received messages
         while (true) {
             try {
-                // Read from the InputStream
-                bytes = mmInStream.read(buffer);
-                if (bytes != 0) {
-                    SystemClock.sleep(100);
-                    mmInStream.read(buffer);
-                }
-                // Send the obtained bytes to the UI activity
+                bytes = mmInStream.read(buffer);            //read bytes from input buffer
 
-                mHandler.obtainMessage(2, bytes, -1, buffer)
-                        .sendToTarget();
+                String readMessage = new String(buffer, 0, bytes);
+                // Send the obtained bytes to the UI Activity via handler
+                mHandler.obtainMessage(2, bytes, -1, readMessage).sendToTarget();
             } catch (IOException e) {
                 break;
             }
@@ -75,44 +70,4 @@ public class ConnectedThread extends Thread {
         } catch (IOException e) {
         }
     }
-
-//    boolean stopThread;
-//    InputStream inputStream;
-//
-//    void beginListenForData() throws IOException {
-//        inputStream = mmSocket.getInputStream();
-//        stopThread = false;
-//        Thread thread  = new Thread(new Runnable()
-//        {
-//            public void run()
-//            {
-//                while(!Thread.currentThread().isInterrupted() && !stopThread)
-//                {
-//                    try
-//                    {
-//                        int byteCount = inputStream.available();
-//                        if(byteCount > 0)
-//                        {
-//                            byte[] rawBytes = new byte[byteCount];
-//                            inputStream.read(rawBytes);
-//                            final String str=new String(rawBytes,"UTF-8");
-//                            mHandler.post(new Runnable() {
-//                                public void run()
-//                                {
-//                                    receivedData = str;
-//                                }
-//                            });
-//
-//                        }
-//                    }
-//                    catch (IOException ex)
-//                    {
-//                        stopThread = true;
-//                    }
-//                }
-//            }
-//        });
-//
-//        thread.start();
-//    }
 }
