@@ -28,5 +28,6 @@ dependencies {
     compile 'com.android.support:design:25.0.1'
     compile 'com.android.support:support-v4:25.0.1'
     compile 'com.github.PhilJay:MPAndroidChart:v3.0.1'
+    compile 'com.github.anastr:speedviewlib:1.1.0'
     testCompile 'junit:junit:4.12'
 }

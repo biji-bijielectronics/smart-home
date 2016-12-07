@@ -16,7 +16,7 @@ import static com.example.alan.btapp.StartActivity.mConnectedThread;
  * A simple {@link Fragment} subclass.
  */
 public class LightFragment extends Fragment {
-    CheckBox checkBox;
+    CheckBox light1, light2, light3, light4, light5;
 
     public LightFragment() {
         // Required empty public constructor
@@ -33,18 +33,73 @@ public class LightFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         // Setup any handles to view objects here
-        // EditText etFoo = (EditText) view.findViewById(R.id.etFoo);
-        checkBox = (CheckBox) view.findViewById(R.id.checkBox);
+        light1 = (CheckBox) view.findViewById(R.id.checkBox);
+        light2 = (CheckBox) view.findViewById(R.id.checkBox2);
+        light3 = (CheckBox) view.findViewById(R.id.checkBox3);
+        light4 = (CheckBox) view.findViewById(R.id.checkBox4);
+        light5 = (CheckBox) view.findViewById(R.id.checkBox5);
 
-        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        light1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (checkBox.isChecked()) {
+                if (light1.isChecked()) {
                     if(mConnectedThread != null) //First check to make sure thread created
-                        mConnectedThread.write("1");
-                } else if (!checkBox.isChecked()) {
+                        mConnectedThread.write("#L1+255~");
+                } else if (!light1.isChecked()) {
                     if(mConnectedThread != null) //First check to make sure thread created
-                        mConnectedThread.write("0");
+                        mConnectedThread.write("#L1+0~");
+                }
+            }
+        });
+
+        light2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (light2.isChecked()) {
+                    if(mConnectedThread != null) //First check to make sure thread created
+                        mConnectedThread.write("#L2+255~");
+                } else if (!light2.isChecked()) {
+                    if(mConnectedThread != null) //First check to make sure thread created
+                        mConnectedThread.write("#L2+0~");
+                }
+            }
+        });
+
+        light3.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (light3.isChecked()) {
+                    if(mConnectedThread != null) //First check to make sure thread created
+                        mConnectedThread.write("#L3+255~");
+                } else if (!light3.isChecked()) {
+                    if(mConnectedThread != null) //First check to make sure thread created
+                        mConnectedThread.write("#L1+0~");
+                }
+            }
+        });
+
+        light4.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (light4.isChecked()) {
+                    if(mConnectedThread != null) //First check to make sure thread created
+                        mConnectedThread.write("#L4+255~");
+                } else if (!light4.isChecked()) {
+                    if(mConnectedThread != null) //First check to make sure thread created
+                        mConnectedThread.write("#L4+0~");
+                }
+            }
+        });
+
+        light5.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (light5.isChecked()) {
+                    if(mConnectedThread != null) //First check to make sure thread created
+                        mConnectedThread.write("#L5+255~");
+                } else if (!light5.isChecked()) {
+                    if(mConnectedThread != null) //First check to make sure thread created
+                        mConnectedThread.write("#L5+0~");
                 }
             }
         });
