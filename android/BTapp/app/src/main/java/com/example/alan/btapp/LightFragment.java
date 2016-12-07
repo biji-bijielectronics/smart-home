@@ -73,7 +73,7 @@ public class LightFragment extends Fragment {
                         mConnectedThread.write("#L3+255~");
                 } else if (!light3.isChecked()) {
                     if(mConnectedThread != null) //First check to make sure thread created
-                        mConnectedThread.write("#L1+0~");
+                        mConnectedThread.write("#L3+0~");
                 }
             }
         });

@@ -1,37 +1,30 @@
 package com.example.alan.btapp;
 
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.RelativeLayout;
 
-import com.github.anastr.speedviewlib.AwesomeSpeedometer;
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.yongjhih.mismeter.MisMeter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static com.example.alan.btapp.StartActivity.mConnectedThread;
-import static com.example.alan.btapp.StartActivity.voltage;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class MainFragment extends Fragment {
+    public static Float voltage = 0.0f;
+    public static Float current = 0.0f;
 
-    private AwesomeSpeedometer awesomeSpeedometer;
+    private ScheduledExecutorService exec;
+
 
     public MainFragment() {
         // Required empty public constructor
@@ -46,31 +39,32 @@ public class MainFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(final View view, Bundle savedInstanceState) {
         // Setup any handles to view objects here
-        awesomeSpeedometer = (AwesomeSpeedometer) view.findViewById(R.id.speedView);
+//        awesomeSpeedometer = (AwesomeSpeedometer) view.findViewById(R.id.speedView);
+//        awesomeSpeedometer.setWithTremble(false);
 
-        while (true) {
-            try {
+        final MisMeter meter = (MisMeter) view.findViewById(R.id.meter);
 
-                mConnectedThread.write("#R~");
-                mConnectedThread.sleep(1000);
-                awesomeSpeedometer.speedTo(voltage); //voltage * current
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        exec = Executors.newSingleThreadScheduledExecutor();
+        exec.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    System.out.println("executed");
+                    mConnectedThread.write("#R~");
+                    meter.setProgress(voltage.floatValue() / 100);
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-        }
-//        awesomeSpeedometer.invalidate();
-//        awesomeSpeedometer.speedTo(20);
-//        if (awesomeSpeedometer.getSpeed() < 25) {
-//            awesomeSpeedometer.setSpeedometerColor(Color.BLUE);
-//            awesomeSpeedometer.speedTo(50);
-//        } else if (awesomeSpeedometer.getSpeed() > 25 && awesomeSpeedometer.getSpeed() < 60) {
-//            awesomeSpeedometer.setSpeedometerColor(Color.GREEN);
-//            awesomeSpeedometer.speedTo(80);
-//        } else if (awesomeSpeedometer.getSpeed() > 60 && awesomeSpeedometer.getSpeed() < 100) {
-//            awesomeSpeedometer.setSpeedometerColor(Color.RED);
-//            awesomeSpeedometer.speedTo(0);
-//        }
+        }, 0, 1, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        exec.shutdown();
     }
 }

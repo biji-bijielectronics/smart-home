@@ -1,18 +1,14 @@
 package com.example.alan.btapp;
 
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -26,12 +22,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
+
+import static com.example.alan.btapp.DataFragment.graphData;
+import static com.example.alan.btapp.MainFragment.current;
+import static com.example.alan.btapp.MainFragment.voltage;
 
 public class StartActivity extends AppCompatActivity {
     private final static int REQUEST_ENABLE_BT = 1; // used to identify adding bluetooth names
@@ -45,11 +42,8 @@ public class StartActivity extends AppCompatActivity {
     private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     private BluetoothAdapter BA;
-    private StringBuilder recDataString = new StringBuilder();
 
-    public static int voltage, current;
-    String[] graphData;
-    String clearLog;
+    private StringBuilder recDataString = new StringBuilder();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,64 +54,60 @@ public class StartActivity extends AppCompatActivity {
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
-        mHandler = new Handler() {
-            public void handleMessage(android.os.Message msg) {
-                if (msg.what == 0) {
+        BA = BluetoothAdapter.getDefaultAdapter();
+
+        mHandler = new Handler(){
+            public void handleMessage(android.os.Message msg){
+                if(msg.what == MESSAGE_READ){
+
                     String readMessage = (String) msg.obj;
                     recDataString.append(readMessage);               //keep appending to string until ~
                     int endOfLineIndex = recDataString.indexOf("~"); // determine the end-of-line
                     if (endOfLineIndex > 0) {                        // make sure there data before ~
                         String dataInPrint = recDataString.substring(0, endOfLineIndex);    // extract string
-                        //txtString.setText("Data Received = " + dataInPrint);
-                        int dataLength = dataInPrint.length();                              //get length of data received
-                        //txtStringLength.setText("String Length = " + String.valueOf(dataLength));
+
+                        if (recDataString.charAt(0) == '#' && recDataString.charAt(1) == 'D') {
+                            recDataString.deleteCharAt(0);
+                            recDataString.deleteCharAt(0);
+                            recDataString.substring(recDataString.length());
+                            graphData = recDataString.toString().split("\\|");
+                            for (String data : graphData) {
+                                System.out.println(data);
+                            }
+                        }
 
                         if (recDataString.charAt(0) == '#' && recDataString.charAt(1) == 'R') //if it starts with # we know it is what we are looking for
                         {
                             recDataString.deleteCharAt(0);
-                            recDataString.deleteCharAt(1);
-                            recDataString.deleteCharAt(recDataString.length()-1);
-                            String[] nums = recDataString.toString().split("/+");
-                            voltage = Integer.parseInt(nums[0]);
-                            current = Integer.parseInt(nums[1]);
-                        } else if (recDataString.charAt(0) == '#' && recDataString.charAt(1) == 'D') {
                             recDataString.deleteCharAt(0);
-                            recDataString.deleteCharAt(1);
-                            recDataString.deleteCharAt(recDataString.length()-1);
-                            graphData = recDataString.toString().split("|");
-                        } else if (recDataString.charAt(0) == '#' && recDataString.charAt(1) == 'C') {
+                            String[] nums = recDataString.toString().split("\\+");
+                            nums[1] = nums[1].substring(0, 4);
+                            voltage = Float.parseFloat(nums[0]);
+                            current = Float.parseFloat(nums[1]);
+                            System.out.println(voltage + " . " + current);
+                        }
+
+                        if (recDataString.charAt(0) == '#' && recDataString.charAt(1) == 'C') {
                             Toast.makeText(getApplicationContext(), "Log files are cleared", Toast.LENGTH_SHORT).show();
+                            System.out.println(recDataString.toString());
                         }
                         recDataString.delete(0, recDataString.length());            //clear all string data
                         dataInPrint = " ";
                     }
                 }
-            }
-        };
 
-        BA = BluetoothAdapter.getDefaultAdapter();
-
-        mHandler = new Handler() {
-            public void handleMessage(android.os.Message msg) {
-                if (msg.what == MESSAGE_READ) {
-                    String readMessage = null;
-                    try {
-                        readMessage = new String((byte[]) msg.obj, "UTF-8");
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                if (msg.what == CONNECTING_STATUS) {
-                    if (msg.arg1 == 1) {
+                if(msg.what == CONNECTING_STATUS){
+                    if(msg.arg1 == 1) {
                         Toast.makeText(getApplicationContext(), "Connected to Device: " + (String) (msg.obj), Toast.LENGTH_SHORT).show();
                         Intent mainMenu = new Intent(StartActivity.this, MainActivity.class);
                         startActivity(mainMenu);
-                    } else
-                        Toast.makeText(getApplicationContext(), "Connection failed", Toast.LENGTH_SHORT).show();
+                    }
+                    else
+                        Toast.makeText(getApplicationContext(),"Connection failed",Toast.LENGTH_SHORT).show();
                 }
             }
         };
+
 
 
         if (BA == null) {
@@ -139,17 +129,12 @@ public class StartActivity extends AppCompatActivity {
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
 
-        // Make discoverable
-        Intent getVisible = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-        startActivityForResult(getVisible, 0);
-
-
         // ListView paired devices
         ListView lv = (ListView) findViewById(R.id.lv_paired);
         Set<BluetoothDevice> pairedDevices = BA.getBondedDevices();
         ArrayList list = new ArrayList();
-        for (BluetoothDevice btz : pairedDevices) list.add(btz.getName() + "\n" + btz.getAddress());
-        Toast.makeText(getApplicationContext(), "Showing Paired Devices", Toast.LENGTH_SHORT).show();
+        for(BluetoothDevice btz : pairedDevices) list.add(btz.getName() + "\n" + btz.getAddress());
+        Toast.makeText(getApplicationContext(), "Showing Paired Devices",Toast.LENGTH_SHORT).show();
         ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, list);
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(mDeviceClickListener);
@@ -168,27 +153,25 @@ public class StartActivity extends AppCompatActivity {
                 lv.setOnItemClickListener(mDeviceClickListener);
             }
         });
-
-//        Intent intent = new Intent(StartActivity.this, MainActivity.class);
-//        startActivity(intent);
     }
 
     private AdapterView.OnItemClickListener mDeviceClickListener = new AdapterView.OnItemClickListener() {
         public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3) {
 
-            if (!BA.isEnabled()) {
+            if(!BA.isEnabled()) {
                 Toast.makeText(getBaseContext(), "Bluetooth not on", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            Toast.makeText(getApplicationContext(), "Connecting...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),"Connecting...",Toast.LENGTH_SHORT).show();
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
             final String address = info.substring(info.length() - 17);
-            final String name = info.substring(0, info.length() - 17);
+            final String name = info.substring(0,info.length() - 17);
 
             // Spawn a new thread to avoid blocking the GUI one
-            new Thread() {
+            new Thread()
+            {
                 public void run() {
                     boolean fail = false;
 
@@ -214,7 +197,7 @@ public class StartActivity extends AppCompatActivity {
                             Toast.makeText(getBaseContext(), "Socket creation failed", Toast.LENGTH_SHORT).show();
                         }
                     }
-                    if (fail == false) {
+                    if(fail == false) {
                         mConnectedThread = new ConnectedThread(mBTSocket);
                         mConnectedThread.start();
 
@@ -223,6 +206,7 @@ public class StartActivity extends AppCompatActivity {
                     }
                 }
             }.start();
+
         }
     };
 
@@ -249,7 +233,7 @@ public class StartActivity extends AppCompatActivity {
     }
 
     private BluetoothSocket createBluetoothSocket(BluetoothDevice device) throws IOException {
-        return device.createRfcommSocketToServiceRecord(BTMODULEUUID);
+        return  device.createRfcommSocketToServiceRecord(BTMODULEUUID);
         //creates secure outgoing connection with BT device using UUID
     }
 }

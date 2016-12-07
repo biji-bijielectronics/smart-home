@@ -1,6 +1,5 @@
 package com.example.alan.btapp;
 
-import android.content.Intent;
 import android.net.Uri;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
@@ -19,6 +18,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mConnectedThread.write("#D~");
         setContentView(R.layout.activity_main);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -28,15 +28,15 @@ public class MainActivity extends AppCompatActivity {
         viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
         viewPagerAdapter.addFragments(new MainFragment(), "Main");
         viewPagerAdapter.addFragments(new LightFragment(), "Light");
-        viewPagerAdapter.addFragments(new DataFragment(), "Graph");
+        viewPagerAdapter.addFragments(new DataFragment(), "Data");
         viewPager.setAdapter(viewPagerAdapter);
 
         tabLayout.setupWithViewPager(viewPager);
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onPause() {
+        super.onPause();
         mConnectedThread.cancel();
     }
 }
