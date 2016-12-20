@@ -61,7 +61,7 @@ public class MainFragment extends Fragment {
                 System.out.println(voltage * current);
                 mConnectedThread.write("#R~");
 
-                float slope = (float) (1.0 * (100) / (12.7 - 11.6));
+                float slope = (float) (1.0 * (100) / (12.7 - 11.8));
                 final float output = (float) (0 + slope * (voltage - 11.6));
                 System.out.println(output);
 
