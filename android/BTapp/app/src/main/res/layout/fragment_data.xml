@@ -10,21 +10,28 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <Button
-            android:text="Sync"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/syncButton"
-            android:layout_below="@+id/chart"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"/>
-
         <com.github.mikephil.charting.charts.LineChart
             android:id="@+id/chart"
             android:layout_width="match_parent"
             android:layout_marginTop="5dp"
             app:layout_heightPercent="87%"
-            android:layout_alignParentStart="true" />
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true" />
+
+        <Button
+            android:text="Sync"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/syncButton"
+            android:layout_below="@id/chart"
+            android:layout_centerHorizontal="true" />
+
+        <Spinner
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/spinner"
+            android:layout_below="@+id/chart"
+            android:layout_marginEnd="30dp" />
 
     </android.support.percent.PercentRelativeLayout>
 
