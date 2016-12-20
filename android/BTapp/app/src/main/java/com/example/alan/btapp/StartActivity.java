@@ -4,8 +4,10 @@ import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
@@ -26,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.example.alan.btapp.DataFragment.graphData;
 import static com.example.alan.btapp.MainFragment.current;
 import static com.example.alan.btapp.MainFragment.voltage;
 
@@ -35,6 +36,8 @@ public class StartActivity extends AppCompatActivity {
     private final static int MESSAGE_READ = 2; // used in bluetooth handler to identify message update
     private final static int CONNECTING_STATUS = 3;
 
+    public static boolean isDone = false;
+    public static SQLiteDatabase database;
     public static Handler mHandler;
     public static ConnectedThread mConnectedThread; // bluetooth background worker thread to send and receive data
     private BluetoothSocket mBTSocket = null;
@@ -44,6 +47,8 @@ public class StartActivity extends AppCompatActivity {
     private BluetoothAdapter BA;
 
     private StringBuilder recDataString = new StringBuilder();
+
+    private ProgressDialog mProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,9 +61,13 @@ public class StartActivity extends AppCompatActivity {
 
         BA = BluetoothAdapter.getDefaultAdapter();
 
+        DBHelper dbHelper = new DBHelper(StartActivity.this);
+        database = dbHelper.getWritableDatabase();
+
         mHandler = new Handler(){
             public void handleMessage(android.os.Message msg){
                 if(msg.what == MESSAGE_READ){
+                    isDone = false;
 
                     String readMessage = (String) msg.obj;
                     recDataString.append(readMessage);               //keep appending to string until ~
@@ -67,13 +76,38 @@ public class StartActivity extends AppCompatActivity {
                         String dataInPrint = recDataString.substring(0, endOfLineIndex);    // extract string
 
                         if (recDataString.charAt(0) == '#' && recDataString.charAt(1) == 'D') {
-                            recDataString.deleteCharAt(0);
-                            recDataString.deleteCharAt(0);
-                            recDataString.substring(recDataString.length());
-                            graphData = recDataString.toString().split("\\|");
-                            for (String data : graphData) {
-                                System.out.println(data);
+
+                            dataInPrint = dataInPrint.replace("#", "");
+                            dataInPrint = dataInPrint.replace("D", "");
+                            dataInPrint = dataInPrint.replace("~", "");
+                            dataInPrint = dataInPrint.replace("R", "");
+
+                            String[] graphData = dataInPrint.split("\\|");
+
+                            for (String aGraphData : graphData) {
+                                System.out.println(aGraphData);
                             }
+
+                            ContentValues contentValues = new ContentValues();
+
+                            for (String aGraphData : graphData) {
+                                String[] dataSet = aGraphData.split("\\+");
+                                if (dataSet.length <= 1) continue;
+                                String date = dataSet[0];
+                                String current = dataSet[1];
+                                String voltage = dataSet[2];
+
+                                contentValues.put(DBHelper.KEY_DATE, date);
+                                contentValues.put(DBHelper.KEY_CURRENT, current);
+                                contentValues.put(DBHelper.KEY_VOLTAGE, voltage);
+                                database.insert(DBHelper.TABLE_ENERGY, null, contentValues);
+                            }
+
+                            mConnectedThread.write("#C~");
+
+                            Toast.makeText(getApplicationContext(), "Graph updated", Toast.LENGTH_SHORT).show();
+                            isDone = true;
+
                         }
 
                         if (recDataString.charAt(0) == '#' && recDataString.charAt(1) == 'R') //if it starts with # we know it is what we are looking for
@@ -98,12 +132,45 @@ public class StartActivity extends AppCompatActivity {
 
                 if(msg.what == CONNECTING_STATUS){
                     if(msg.arg1 == 1) {
-                        Toast.makeText(getApplicationContext(), "Connected to Device: " + (String) (msg.obj), Toast.LENGTH_SHORT).show();
+//                      Toast.makeText(getApplicationContext(), "Connected to Device: " + (String) (msg.obj), Toast.LENGTH_SHORT).show();
                         Intent mainMenu = new Intent(StartActivity.this, MainActivity.class);
                         startActivity(mainMenu);
+                        try {
+                            if (mProgressDialog != null) {
+                                if (mProgressDialog.isShowing()) {
+                                    mProgressDialog.dismiss();
+                                    mProgressDialog = null;
+                                }
+                            }
+                        } catch (IllegalArgumentException ie) {
+                            ie.printStackTrace();
+
+                        } catch (RuntimeException re) {
+                            re.printStackTrace();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
-                    else
+                    else {
+                        try {
+                            if (mProgressDialog != null) {
+                                if (mProgressDialog.isShowing()) {
+                                    mProgressDialog.dismiss();
+                                    mProgressDialog = null;
+                                }
+                            }
+                        } catch (IllegalArgumentException ie) {
+                            ie.printStackTrace();
+
+                        } catch (RuntimeException re) {
+                            re.printStackTrace();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
                         Toast.makeText(getApplicationContext(),"Connection failed",Toast.LENGTH_SHORT).show();
+
+                    }
                 }
             }
         };
@@ -163,7 +230,25 @@ public class StartActivity extends AppCompatActivity {
                 return;
             }
 
-            Toast.makeText(getApplicationContext(),"Connecting...",Toast.LENGTH_SHORT).show();
+            try {
+                if (mProgressDialog == null) {
+                    mProgressDialog = ProgressDialog.show(StartActivity.this, "Please Wait", "Connecting...");
+                    mProgressDialog.setCancelable(false);
+                }
+
+                if (!mProgressDialog.isShowing()) {
+                    mProgressDialog.show();
+                }
+
+            } catch (IllegalArgumentException ie) {
+                ie.printStackTrace();
+            } catch (RuntimeException re) {
+                re.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+//            Toast.makeText(getApplicationContext(),"Connecting...",Toast.LENGTH_SHORT).show();
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
             final String address = info.substring(info.length() - 17);

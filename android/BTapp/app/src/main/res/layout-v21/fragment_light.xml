@@ -104,8 +104,7 @@
         android:id="@+id/textView3"
         android:textAppearance="@android:style/TextAppearance.Material.Large"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        tools:targetApi="lollipop" />
+        android:layout_centerHorizontal="true" />
 
     <TextView
         android:text="Light 1"

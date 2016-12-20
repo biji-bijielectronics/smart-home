@@ -7,18 +7,53 @@
 
     <!-- TODO: Update blank fragment layout -->
     <android.support.percent.PercentRelativeLayout
-        android:background="@color/colorAccent"
+        android:background="@color/md_red_400"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <com.github.yongjhih.mismeter.MisMeter
             android:id="@+id/meter"
-            app:layout_heightPercent="70%"
-            app:layout_widthPercent="100%"
+            android:layout_height="420dp"
+            android:layout_width="420dp"
             app:show_text="true"
-            android:layout_centerVertical="true"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true" />
+
+        <com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar
+            app:layout_widthPercent="45%"
+            android:layout_height="50dp"
+            app:rcMax="100"
+            app:rcRadius="8dp"
+            app:rcBackgroundPadding="5dp"
+            app:rcProgressColor="@color/md_green_A700"
+            app:rcBackgroundColor="@color/md_grey_400"
+            android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
-            />
+            android:layout_marginTop="40dp"
+            android:id="@+id/roundCornerProgressBar" />
+
+        <TextView
+            android:text="Power"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView10"
+            android:textAppearance="@style/TabStyle"
+            android:textSize="30sp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="51dp"
+            android:textColor="@color/md_grey_50" />
+
+        <TextView
+            android:text="Battery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView4"
+            android:textAppearance="@style/TabStyle"
+            android:textSize="30sp"
+            android:textColor="@color/md_grey_50"
+            android:layout_alignTop="@+id/meter"
+            android:layout_centerHorizontal="true" />
 
     </android.support.percent.PercentRelativeLayout>
 

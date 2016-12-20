@@ -1,25 +1,23 @@
 package com.example.alan.btapp;
 
 import android.bluetooth.BluetoothSocket;
-import android.os.SystemClock;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import static com.example.alan.btapp.StartActivity.mConnectedThread;
 import static com.example.alan.btapp.StartActivity.mHandler;
 
 /**
  * Created by alan on 30/11/2016.
  */
 
-public class ConnectedThread extends Thread {
+class ConnectedThread extends Thread {
     private final BluetoothSocket mmSocket;
     private final InputStream mmInStream;
     private final OutputStream mmOutStream;
 
-    public ConnectedThread(BluetoothSocket socket) {
+    ConnectedThread(BluetoothSocket socket) {
         mmSocket = socket;
         InputStream tmpIn = null;
         OutputStream tmpOut = null;
@@ -55,7 +53,7 @@ public class ConnectedThread extends Thread {
     }
 
     /* Call this from the main activity to send data to the remote device */
-    public void write(String input) {
+    void write(String input) {
         byte[] bytes = input.getBytes();           //converts entered String into bytes
         try {
             mmOutStream.write(bytes);
@@ -64,7 +62,7 @@ public class ConnectedThread extends Thread {
     }
 
     /* Call this from the main activity to shutdown the connection */
-    public void cancel() {
+    void cancel() {
         try {
             mmSocket.close();
         } catch (IOException e) {
